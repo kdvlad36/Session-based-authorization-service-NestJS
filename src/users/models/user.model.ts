@@ -1,4 +1,4 @@
-import { Session } from '../session/SessionModel';
+import { Session } from '../../sessions/types/session.type';
 
 export class User {
   uid: string; // Уникальный идентификатор пользователя
