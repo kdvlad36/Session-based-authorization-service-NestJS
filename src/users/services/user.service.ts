@@ -1,22 +1,30 @@
 import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 import { User } from '../models/user.model';
-import { RegisterDto } from '../dto/register.dto';
-import { v4 as uuidv4 } from 'uuid';
-import { Session } from '../../sessions/types/session.type';
+import { db } from '../../main';
 
 @Injectable()
 export class UserService {
-  private users: User[] = [];
+  async getAllUsers(): Promise<User[]> {
+    try {
+      const users: User[] = [];
+      const snapshot = await db.collection('users').get();
 
-  async register(registerDto: RegisterDto): Promise<User> {
-    const { email, password } = registerDto;
-    const hashedPassword = await bcrypt.hash(password, 10);
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        users.push(
+          new User(
+            data.uid,
+            data.email,
+            data.sessions,
+            data.createdAt.toDate(),
+            data.updatedAt.toDate(),
+          ),
+        );
+      });
 
-    const uid = uuidv4(); // генерация уникального идентификатора пользователя
-    const sessions: Session[] = []; // инициализация пустого массива сессий
-    const user = new User(uid, email, hashedPassword, sessions);
-    this.users.push(user);
-    return user;
+      return users;
+    } catch (error) {
+      throw new Error('Error fetching users: ' + error);
+    }
   }
 }
