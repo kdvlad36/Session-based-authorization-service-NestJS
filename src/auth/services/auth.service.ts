@@ -72,7 +72,7 @@ export class AuthService {
   }
   private async saveSessionToDB(session: Session): Promise<void> {
     try {
-      const userRef = db.collection('users').doc(session.userId);
+      const userRef = db.collection('users').doc(session.uid);
       const userSnapshot = await userRef.get();
       if (!userSnapshot.exists) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
@@ -92,18 +92,18 @@ export class AuthService {
     }
   }
 
-  async createSession(userId: string, req: Request): Promise<Session> {
+  async createSession(uid: string, req: Request): Promise<Session> {
     try {
       const sessionId = uuidv4();
-      const deviceInfo = this.getDeviceInfo(req); // This should return a string according to your Session model
+      const deviceInfo = this.getDeviceInfo(req);
+
+      const startedAt = admin.firestore.Timestamp.fromDate(new Date()); // This line is fixed
 
       const session = new Session(
         sessionId,
-        userId,
-        new Date(), // startedAt
-        deviceInfo, // This should be a string according to your Session model
-        new Date(), // createdAt
-        // You can add endedAt and sessionData later when the session ends
+        uid,
+        startedAt, // This should be a Firestore Timestamp
+        deviceInfo,
       );
 
       await this.saveSessionToDB(session);

@@ -1,27 +1,32 @@
+import * as admin from 'firebase-admin';
+
 export class Session {
-  sessionId: string; // Уникальный идентификатор сессии
-  userId: string; // Идентификатор пользователя, связанный с этой сессией
-  startedAt: Date; // Дата и время начала сессии
-  endedAt?: Date; // Дата и время окончания сессии
-  sessionData?: any; // Данные сессии
-  device: string; // Информация об устройстве, с которого был выполнен вход
-  createdAt: Date; // Время начала сессии
+  sessionId: string;
+  uid: string;
+  startedAt: admin.firestore.Timestamp; // Предполагая, что вы хотите использовать Timestamp здесь также
+  endedAt?: admin.firestore.Timestamp;
+  sessionData?: any;
+  device: string;
+  createdAt: admin.firestore.Timestamp;
+  lastActive: admin.firestore.Timestamp; // Новое свойство
 
   constructor(
     sessionId: string,
-    userId: string,
-    startedAt: Date,
-    device: string, // Добавлено свойство device
-    createdAt: Date, // Добавлено свойство createdAt
-    endedAt?: Date,
+    uid: string,
+    startedAt: admin.firestore.Timestamp,
+    endedAt?: admin.firestore.Timestamp,
     sessionData?: any,
+    device?: string,
+    createdAt?: admin.firestore.Timestamp,
+    lastActive?: admin.firestore.Timestamp, // Новый параметр
   ) {
     this.sessionId = sessionId;
-    this.userId = userId;
+    this.uid = uid;
     this.startedAt = startedAt;
-    this.device = device; // Инициализировано свойство device
-    this.createdAt = createdAt; // Инициализировано свойство createdAt
     this.endedAt = endedAt;
     this.sessionData = sessionData;
+    this.device = device || '';
+    this.createdAt = createdAt || admin.firestore.Timestamp.now();
+    this.lastActive = lastActive || admin.firestore.Timestamp.now();
   }
 }
