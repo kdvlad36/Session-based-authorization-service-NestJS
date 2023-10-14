@@ -1,4 +1,4 @@
-import { Session } from '../../sessions/types/session.type';
+import { Session } from '../../sessions/models/session.model';
 
 export class User {
   uid: string;
