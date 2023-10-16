@@ -8,7 +8,7 @@ export class SessionMiddleware implements NestMiddleware {
   constructor(private readonly authService: AuthService) {}
 
   async use(req: RequestWithSession, res: Response, next: NextFunction) {
-    console.log('Middleware invoked');
+    console.log('Session middleware invoked');
     try {
       const idToken = req.headers.authorization?.split(' ')[1];
       console.log('ID Token:', idToken);
@@ -34,7 +34,7 @@ export class SessionMiddleware implements NestMiddleware {
       const session = await this.authService.createSession(uid, req);
       console.log('Session:', session);
 
-      req.session = session; // Присвоение сессии в объект запроса
+      req.session = session;
       console.log('Session in Middleware:', req.session);
 
       next();

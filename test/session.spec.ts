@@ -8,7 +8,7 @@ import { SessionService } from '../src/sessions/services/session.service';
 import { AuthService } from '../src/auth/services/auth.service';
 // import { db } from '../firebase';
 import * as admin from 'firebase-admin';
-import { SessionMiddleware } from '../src/sessions/middlewares/middleware';
+import { SessionMiddleware } from '../src/sessions/middlewares/session.middleware';
 import { RequestWithSession } from '../src/sessions/models/session.model';
 import { Response, NextFunction } from 'express';
 
