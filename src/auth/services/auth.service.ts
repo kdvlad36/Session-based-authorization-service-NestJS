@@ -1,5 +1,5 @@
 import { RegisterDto } from '../dto/register.dto';
-import { db } from '../../main';
+import { db } from '../../../firebase';
 import * as admin from 'firebase-admin';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { User } from '../../users/models/user.model';
@@ -20,7 +20,7 @@ export class AuthService {
       });
 
       if (!userRecord.email) {
-        throw new Error('User created, but email is not set');
+        throw Error('User created, but email is not set');
       }
 
       const createdAt = new Date();
@@ -44,7 +44,7 @@ export class AuthService {
         updatedAt,
       );
     } catch (error) {
-      throw new Error('Error creating new user: ' + error);
+      throw Error('Error creating new user: ' + error);
     }
   }
 
@@ -54,7 +54,7 @@ export class AuthService {
       const decodedIdToken = await admin.auth().verifyIdToken(idToken);
       return decodedIdToken;
     } catch (error) {
-      throw new Error('Error verifying ID token: ' + error);
+      throw Error('Error verifying ID token: ' + error);
     }
   }
 
@@ -80,7 +80,7 @@ export class AuthService {
 
       const userData = userSnapshot.data();
       if (!userData) {
-        throw new Error('User data is undefined');
+        throw Error('User data is undefined');
       }
 
       const plainSessionObject = JSON.parse(JSON.stringify(session));
@@ -110,7 +110,7 @@ export class AuthService {
 
       return session;
     } catch (error) {
-      throw new Error('Error creating session: ' + error);
+      throw Error('Error creating session: ' + error);
     }
   }
 }

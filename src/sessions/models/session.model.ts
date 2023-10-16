@@ -1,14 +1,15 @@
 import * as admin from 'firebase-admin';
+import { Request } from 'express';
 
 export class Session {
   sessionId: string;
   uid: string;
-  startedAt: admin.firestore.Timestamp; // Предполагая, что вы хотите использовать Timestamp здесь также
+  startedAt: admin.firestore.Timestamp;
   endedAt?: admin.firestore.Timestamp;
   sessionData?: any;
   device: string;
   createdAt: admin.firestore.Timestamp;
-  lastActive: admin.firestore.Timestamp; // Новое свойство
+  lastActive: admin.firestore.Timestamp;
 
   constructor(
     sessionId: string,
@@ -18,7 +19,7 @@ export class Session {
     sessionData?: any,
     device?: string,
     createdAt?: admin.firestore.Timestamp,
-    lastActive?: admin.firestore.Timestamp, // Новый параметр
+    lastActive?: admin.firestore.Timestamp,
   ) {
     this.sessionId = sessionId;
     this.uid = uid;
@@ -29,4 +30,8 @@ export class Session {
     this.createdAt = createdAt || admin.firestore.Timestamp.now();
     this.lastActive = lastActive || admin.firestore.Timestamp.now();
   }
+}
+
+export interface RequestWithSession extends Request {
+  session?: Session;
 }

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from './../src/app.module';
 
 describe('AppController (e2e)', () => {
@@ -20,5 +20,19 @@ describe('AppController (e2e)', () => {
       .get('/')
       .expect(200)
       .expect('Hello World!');
+  });
+});
+
+describe('AuthService', () => {
+  it('should do something', () => {
+    console.log('AuthService test is running');
+    expect(true).toBe(true);
+  });
+});
+
+describe('AuthController', () => {
+  it('should do something else', () => {
+    console.log('AuthController test is running');
+    expect(true).toBe(true);
   });
 });

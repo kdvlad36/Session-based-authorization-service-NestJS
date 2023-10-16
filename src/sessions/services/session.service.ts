@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Session } from '../models/session.model';
-import { db } from '../../main';
+import { db } from '../../../firebase';
 import { v4 as uuidv4 } from 'uuid';
-import { AuthService } from 'src/auth/services/auth.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { Request } from 'express';
 import * as admin from 'firebase-admin';
 

@@ -1,6 +1,6 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { SessionService } from '../services/session.service';
-import { RequestWithSession } from '../models/types.d';
+import { RequestWithSession } from '../models/session.model';
 import { SessionMiddleware } from '../middlewares/middleware';
 @Controller('sessions')
 @UseGuards(SessionMiddleware)

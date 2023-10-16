@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '../models/user.model';
-import { db } from '../../main';
+import { db } from '../../../firebase';
 
 @Injectable()
 export class UserService {
