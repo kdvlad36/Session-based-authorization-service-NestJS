@@ -13,15 +13,10 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+  const port = 3000;
 
-  // Получаем экземпляр AppModule
-  const appModule = app.get<AppModule>(AppModule);
-
-  // Убедитесь, что appModule имеет свойство app и присвойте ему экземпляр app
-  if (appModule && 'app' in appModule) {
-    appModule.app = app;
-  }
-
-  await app.listen(3000);
+  await app.listen(port, () => {
+    console.log(`Application is running on http://localhost:${port}`);
+  });
 }
 bootstrap();
