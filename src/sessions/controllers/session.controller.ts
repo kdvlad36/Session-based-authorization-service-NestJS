@@ -2,12 +2,19 @@ import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { SessionService } from '../services/session.service';
 import { RequestWithSession } from '../models/session.model';
 import { SessionMiddleware } from '../middlewares/session.middleware';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+
+@ApiTags('Сессии')
 @Controller('sessions')
 @UseGuards(SessionMiddleware)
 export class SessionController {
   constructor(private readonly sessionService: SessionService) {}
 
   @Get()
+  @ApiResponse({
+    status: 200,
+    description: 'Получение активных сессий пользователя.',
+  })
   async getActiveSessions(@Req() req: RequestWithSession) {
     console.log('getActiveSessions invoked');
 
