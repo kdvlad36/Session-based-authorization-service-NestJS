@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Req, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Delete, Req, Param, UseGuards } from '@nestjs/common';
 import { SessionService } from '../services/session.service';
 import { RequestWithSession } from '../models/session.model';
 import { SessionMiddleware } from '../middlewares/session.middleware';
@@ -36,7 +36,7 @@ export class SessionController {
   }
 
   // New method to force session termination
-  @Post('end/:sessionId')
+  @Delete('end/:sessionId')
   @ApiResponse({
     status: 200,
     description: 'Принудительное завершение сессии пользователя по ID сессии.',
@@ -46,19 +46,5 @@ export class SessionController {
 
     await this.sessionService.endSession(sessionId);
     return { message: 'Session ended successfully' };
-  }
-
-  // New method to automatically end inactive sessions
-  @Post('end-inactive')
-  @ApiResponse({
-    status: 200,
-    description:
-      'Автоматическое завершение неактивных сессий, которые превысили установленный период неактивности.',
-  })
-  async endInactiveSessions() {
-    console.log('endInactiveSessions invoked');
-
-    await this.sessionService.checkAndEndInactiveSessions();
-    return { message: 'Inactive sessions ended successfully' };
   }
 }

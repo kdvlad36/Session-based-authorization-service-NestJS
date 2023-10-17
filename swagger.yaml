@@ -82,7 +82,7 @@ paths:
       tags: &ref_2
         - Сессии
   /sessions/end/{sessionId}:
-    post:
+    delete:
       operationId: SessionController_endSession
       parameters:
         - name: sessionId
@@ -95,7 +95,7 @@ paths:
           description: Принудительное завершение сессии пользователя по ID сессии.
       tags: *ref_2
   /sessions/end-inactive:
-    post:
+    delete:
       operationId: SessionController_endInactiveSessions
       parameters: []
       responses:
