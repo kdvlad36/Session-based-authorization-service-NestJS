@@ -47,21 +47,64 @@ export class SessionService {
     sessionData?: any,
   ): Promise<Session> {
     const sessionId = uuidv4();
-    const deviceInfo = this.authService.getDeviceInfo(req); // Добавлено получение информации об устройстве
+    const deviceInfo = this.authService.getDeviceInfo(req); // Getting device information
 
     const session = new Session(
       sessionId,
       uid,
-      admin.firestore.Timestamp.fromDate(new Date()), // Изменено на Timestamp
+      admin.firestore.Timestamp.fromDate(new Date()),
       undefined, // endedAt will be undefined when the session is first created
       sessionData,
-      deviceInfo, // Added device info to the session
-      admin.firestore.Timestamp.fromDate(new Date()), // Изменено на Timestamp
+      deviceInfo, // Device info to the session
+      admin.firestore.Timestamp.fromDate(new Date()),
       // ceatedAt
     );
 
     await db.collection('sessions').doc(sessionId).set(session); // Updated to set the entire session object
 
     return session;
+  }
+  async endSession(sessionId: string): Promise<void> {
+    try {
+      const sessionRef = db.collection('sessions').doc(sessionId);
+      await sessionRef.update({
+        endedAt: admin.firestore.Timestamp.now(),
+      });
+      console.log('Session ended:', sessionId);
+    } catch (error) {
+      console.error('Error in endSession:', error);
+      throw error;
+    }
+  }
+
+  async checkAndEndInactiveSessions(): Promise<void> {
+    try {
+      const inactivityPeriod = 60 * 60 * 1000; // 60 minutes in milliseconds
+      const now = admin.firestore.Timestamp.now();
+
+      const sessionsRef = admin.firestore().collection('sessions');
+      const snapshot = await sessionsRef.get();
+
+      const inactiveSessions = snapshot.docs
+        .map((doc) => doc.data() as Session)
+        .filter((session) => {
+          const lastActive = session.lastActive.toMillis();
+          return now.toMillis() - lastActive >= inactivityPeriod;
+        });
+
+      const batch = db.batch();
+      inactiveSessions.forEach((session) => {
+        const sessionRef = db.collection('sessions').doc(session.sessionId);
+        batch.update(sessionRef, {
+          endedAt: admin.firestore.Timestamp.now(),
+        });
+      });
+
+      await batch.commit();
+      console.log('Inactive sessions ended');
+    } catch (error) {
+      console.error('Error in checkAndEndInactiveSessions:', error);
+      throw error;
+    }
   }
 }

@@ -10,10 +10,10 @@ import {
 import { AuthService } from '../services/auth.service';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from './../dto/login.dto';
-import { Request } from 'express'; // импортируем тип Request из express
+import { Request } from 'express';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('Аутентификация') // Группировка эндпоинтов в Swagger UI
+@ApiTags('Аутентификация')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -25,7 +25,7 @@ export class AuthController {
     description: 'Пользователь успешно зарегистрирован.',
   })
   async register(@Body(new ValidationPipe()) registerDto: RegisterDto) {
-    console.log('Register DTO in Controller:', registerDto); // Добавлено логирование DTO в контроллере
+    console.log('Register DTO in Controller:', registerDto);
     return this.authService.register(registerDto);
   }
 
@@ -36,13 +36,12 @@ export class AuthController {
     description: 'Успешный вход в систему.',
   })
   async login(@Body() loginDto: LoginDto, @Req() req: Request) {
-    // добавляем параметр req
     try {
       const user = await this.authService.verifyIdToken(loginDto.idToken);
-      const session = await this.authService.createSession(user.uid, req); // добавляем await и передаем req
-      return { sessionId: session.sessionId }; // отправляем ID сессии на клиент
+      const session = await this.authService.createSession(user.uid, req);
+      return { sessionId: session.sessionId };
     } catch (error) {
-      console.error('Login error:', error); // добавьте логирование ошибки
+      console.error('Login error:', error);
       throw new HttpException('Login failed', HttpStatus.BAD_REQUEST);
     }
   }
