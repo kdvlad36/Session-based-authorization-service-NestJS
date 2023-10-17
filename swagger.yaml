@@ -1,0 +1,142 @@
+openapi: 3.0.0
+paths:
+  /:
+    get:
+      operationId: AppController_getHello
+      parameters: []
+      responses:
+        '200':
+          description: ''
+  /users:
+    get:
+      operationId: UserController_getAllUsers
+      parameters: []
+      responses:
+        '200':
+          description: Получение списка всех пользователей.
+      tags: &ref_0
+        - Пользователи
+  /users/search:
+    get:
+      operationId: UserController_getUserByCriteria
+      parameters:
+        - name: uid
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: email
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: createdAt
+          required: true
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: >-
+            Получение пользователя по заданным критериям (ID, email или дата
+            создания).
+      tags: *ref_0
+  /auth/register:
+    post:
+      operationId: AuthController_register
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDto'
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован.
+      tags: &ref_1
+        - Аутентификация
+  /auth/login:
+    post:
+      operationId: AuthController_login
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginDto'
+      responses:
+        '200':
+          description: Успешный вход в систему.
+      tags: *ref_1
+  /sessions:
+    get:
+      operationId: SessionController_getActiveSessions
+      parameters: []
+      responses:
+        '200':
+          description: >-
+            Получение активных сессий пользователя, с учетом автоматического и
+            принудительного завершения сессий.
+      tags: &ref_2
+        - Сессии
+  /sessions/end/{sessionId}:
+    post:
+      operationId: SessionController_endSession
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Принудительное завершение сессии пользователя по ID сессии.
+      tags: *ref_2
+  /sessions/end-inactive:
+    post:
+      operationId: SessionController_endInactiveSessions
+      parameters: []
+      responses:
+        '200':
+          description: >-
+            Автоматическое завершение неактивных сессий, которые превысили
+            установленный период неактивности.
+      tags: *ref_2
+info:
+  title: API документация
+  description: Описание API
+  version: '1.0'
+  contact: {}
+tags:
+  - name: API
+    description: ''
+servers: []
+components:
+  schemas:
+    RegisterDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: Адрес электронной почты пользователя
+        password:
+          type: string
+          description: Пароль пользователя
+          minLength: 6
+      required:
+        - email
+        - password
+    LoginDto:
+      type: object
+      properties:
+        idToken:
+          type: string
+          description: ID токена пользователя
+        device:
+          type: string
+          description: Информация об устройстве пользователя
+      required:
+        - idToken
+        - device
