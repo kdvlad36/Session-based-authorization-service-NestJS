@@ -94,16 +94,6 @@ paths:
         '200':
           description: Принудительное завершение сессии пользователя по ID сессии.
       tags: *ref_2
-  /sessions/end-inactive:
-    delete:
-      operationId: SessionController_endInactiveSessions
-      parameters: []
-      responses:
-        '200':
-          description: >-
-            Автоматическое завершение неактивных сессий, которые превысили
-            установленный период неактивности.
-      tags: *ref_2
 info:
   title: API документация
   description: Описание API
