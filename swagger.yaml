@@ -70,21 +70,62 @@ paths:
         '200':
           description: Успешный вход в систему.
       tags: *ref_1
-  /sessions:
+  /sessions/all:
     get:
-      operationId: SessionController_getActiveSessions
-      parameters: []
+      operationId: 1_getAllSessions
+      summary: Получить все сессии пользователя
+      parameters:
+        - name: uid
+          required: true
+          in: query
+          description: ID пользователя
+          schema:
+            type: string
       responses:
         '200':
-          description: >-
-            Получение активных сессий пользователя, с учетом автоматического и
-            принудительного завершения сессий.
+          description: Возвращает список всех сессий пользователя.
       tags: &ref_2
         - Сессии
+    delete:
+      operationId: 5_deleteAllSessions
+      summary: Удалить все сессии пользователя
+      parameters:
+        - name: uid
+          required: true
+          in: query
+          description: ID пользователя
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Все сессии пользователя успешно удалены.
+      tags: *ref_2
+  /sessions:
+    get:
+      operationId: 2_getActiveSessions
+      summary: Получить активные сессии
+      parameters:
+        - name: uid
+          required: true
+          in: query
+          description: ID пользователя
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Возвращает список активных сессий пользователя.
+      tags: *ref_2
   /sessions/end/{sessionId}:
     delete:
       operationId: SessionController_endSession
+      summary: Принудительно завершить сессию
       parameters:
+        - name: uid
+          required: true
+          in: query
+          description: ID пользователя
+          schema:
+            type: string
         - name: sessionId
           required: true
           in: path
@@ -92,7 +133,22 @@ paths:
             type: string
       responses:
         '200':
-          description: Принудительное завершение сессии пользователя по ID сессии.
+          description: Сессия успешно завершена.
+      tags: *ref_2
+  /sessions/end-all:
+    delete:
+      operationId: 4_endAllSessions
+      summary: Завершить все сессии пользователя
+      parameters:
+        - name: uid
+          required: true
+          in: query
+          description: ID пользователя
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Все сессии пользователя были успешно завершены.
       tags: *ref_2
 info:
   title: API документация
@@ -121,12 +177,12 @@ components:
     LoginDto:
       type: object
       properties:
-        idToken:
+        email:
           type: string
-          description: ID токена пользователя
-        device:
+          description: Электронная почта пользователя
+        password:
           type: string
-          description: Информация об устройстве пользователя
+          description: Пароль пользователя
       required:
-        - idToken
-        - device
+        - email
+        - password

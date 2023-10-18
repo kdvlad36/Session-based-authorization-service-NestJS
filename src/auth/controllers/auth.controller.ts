@@ -36,13 +36,24 @@ export class AuthController {
     description: 'Успешный вход в систему.',
   })
   async login(@Body() loginDto: LoginDto, @Req() req: Request) {
+    const { email, password } = loginDto;
+
+    if (!email || !password) {
+      throw new HttpException(
+        'Email and password are required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     try {
-      const user = await this.authService.verifyIdToken(loginDto.idToken);
-      const session = await this.authService.createSession(user.uid, req);
-      return { sessionId: session.sessionId };
+      const session = await this.authService.login(loginDto, req);
+
+      return {
+        session: session,
+      };
     } catch (error) {
       console.error('Login error:', error);
-      throw new HttpException('Login failed', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Login failed', HttpStatus.UNAUTHORIZED);
     }
   }
 }

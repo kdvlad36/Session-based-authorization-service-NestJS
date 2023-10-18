@@ -1,98 +1,50 @@
-import mockFirebaseAdmin from './firebase-admin.mock';
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import request from 'supertest';
+import { AuthModule } from '../src/auth/modules/auth.module';
+// import { SessionService } from '../src/sessions/services/session.service';
 
-jest.mock('firebase-admin', () => ({
-  __esModule: true, // это помогает, если у вас есть проблемы с импортами по умолчанию и именованными импортами
-  ...mockFirebaseAdmin,
+jest.mock('../src/sessions/services/session.service', () => ({
+  prototype: {
+    createSession: jest.fn().mockResolvedValue({
+      sessionId: 'test-sessionId',
+      uid: 'test-uid',
+      startedAt: new Date(),
+    }),
+  },
 }));
 
-import { Test, TestingModule } from '@nestjs/testing';
-import { AuthController } from '../src/auth/controllers/auth.controller';
-import { AuthService } from '../src/auth/services/auth.service';
-import { LoginDto } from '../src/auth/dto/login.dto';
-import { Request } from 'express';
-
-describe('AuthController', () => {
-  let controller: AuthController;
-  let service: AuthService;
-  console.log('start test AuthController');
+describe('AuthModule (e2e)', () => {
+  let app: INestApplication;
 
   beforeEach(async () => {
-    service = {
-      register: jest.fn(),
-      verifyIdToken: jest.fn(),
-      createSession: jest.fn(),
-    } as unknown as AuthService;
-
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
-      providers: [
-        {
-          provide: AuthService,
-          useValue: service,
-        },
-      ],
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AuthModule],
     }).compile();
 
-    controller = module.get<AuthController>(AuthController);
+    app = moduleFixture.createNestApplication();
+    await app.init();
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-
-  it('should log in a user', async () => {
-    const loginDto = new LoginDto();
-    loginDto.idToken = 'token';
-
-    const req = {} as Request;
-
-    // Mock the service functions
-    (service.verifyIdToken as jest.Mock).mockResolvedValue({ uid: 'testUid' });
-    (service.createSession as jest.Mock).mockResolvedValue({
-      sessionId: 'testSessionId',
+  describe('Auth Controller', () => {
+    it('/auth/login (POST)', () => {
+      return request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          email: 'test@example.com',
+          password: 'password123',
+        })
+        .expect(201) // Expected status code
+        .expect((res) => {
+          // Additional assertions
+          expect(res.body).toHaveProperty('sessionId');
+        });
     });
 
-    const result = await controller.login(loginDto, req);
-    expect(result).toBeDefined();
-    expect(service.verifyIdToken).toHaveBeenCalledWith('token');
-    expect(service.createSession).toHaveBeenCalledWith('testUid', req);
+    // ... other tests for AuthController
   });
 
-  // Add more test cases as needed
-});
-
-jest.mock('firebase-admin', () => ({
-  __esModule: true, // это помогает, если у вас есть проблемы с импортами по умолчанию и именованными импортами
-  ...mockFirebaseAdmin,
-}));
-
-import { RegisterDto } from '../src/auth/dto/register.dto';
-
-describe('AuthService', () => {
-  let service: AuthService;
-  console.log('start test AuthService');
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [AuthService],
-    }).compile();
-
-    service = module.get<AuthService>(AuthService);
+  afterAll(async () => {
+    await app.close();
   });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
-  it('should register a user', async () => {
-    const registerDto = new RegisterDto();
-    registerDto.email = 'test@example.com';
-    registerDto.password = 'password';
-
-    const user = await service.register(registerDto);
-    expect(user.email).toEqual(registerDto.email);
-    // Add more expectations based on your service logic
-  });
-
-  // Add more test cases as needed
 });

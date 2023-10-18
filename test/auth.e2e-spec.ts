@@ -10,9 +10,9 @@ jest.mock('../src/auth/services/auth.service');
   uid: 'test-uid',
 });
 
-(AuthService.prototype.createSession as jest.Mock).mockResolvedValue({
-  sessionId: 'test-sessionId',
-});
+// (AuthService.prototype.createSession as jest.Mock).mockResolvedValue({
+//   sessionId: 'test-sessionId',
+// });
 
 describe('AuthController (e2e)', () => {
   let app;

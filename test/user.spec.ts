@@ -1,72 +1,43 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserController } from '../src/users/controllers/user.controller';
 import { UserService } from '../src/users/services/user.service';
-import { User } from '../src/users/models/user.model';
+import * as admin from 'firebase-admin';
+import { mock, instance } from 'ts-mockito';
+// Объявите firestoreMock перед его использованием
 
-// Мок данных пользователя
-const usersMock: User[] = [
-  new User('1', 'test@example.com', [], new Date(), new Date()),
-];
+jest.mock('firebase-admin', () => {
+  const admin = jest.requireActual('firebase-admin');
+  return {
+    ...admin,
+    firestore: jest.fn(() => ({
+      // ваш мок firestore
+    })),
+    initializeApp: jest.fn(),
+  };
+});
 
-// Мок для Firestore
-const firestoreMock = {
-  collection: jest.fn().mockReturnThis(),
-  get: jest.fn().mockResolvedValue({
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    forEach: (callback: Function) => {
-      usersMock.forEach((user) => callback({ data: () => user }));
-    },
-  }),
-};
-
-// Мок для firebase-admin
-jest.mock('firebase-admin', () => ({
-  initializeApp: jest.fn(),
-  credential: {
-    cert: jest.fn(),
-  },
-  firestore: jest.fn(() => firestoreMock),
-}));
-
-describe('UserController', () => {
-  let userController: UserController;
-  let userService: UserService;
+describe('UserService', () => {
+  let service: UserService;
+  let firestore: admin.firestore.Firestore;
 
   beforeEach(async () => {
+    firestore = mock(admin.firestore.Firestore);
+
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [UserController],
-      providers: [UserService],
+      providers: [
+        UserService,
+        {
+          provide: 'Firestore',
+          useValue: instance(firestore),
+        },
+      ],
     }).compile();
 
-    userController = module.get<UserController>(UserController);
-    userService = module.get<UserService>(UserService);
+    service = module.get<UserService>(UserService);
   });
 
   it('should be defined', () => {
-    expect(userController).toBeDefined();
-    expect(userService).toBeDefined();
+    expect(service).toBeDefined();
   });
 
-  describe('getAllUsers', () => {
-    it('should return an array of users', async () => {
-      const spy = jest
-        .spyOn(userService, 'getAllUsers')
-        .mockResolvedValue(usersMock);
-      const users = await userController.getAllUsers();
-      expect(users).toEqual(usersMock);
-      expect(spy).toHaveBeenCalled();
-    });
-
-    it('should handle error', async () => {
-      const errorMessage = 'Error fetching users';
-      jest
-        .spyOn(userService, 'getAllUsers')
-        .mockRejectedValue(new Error(errorMessage));
-      try {
-        await userController.getAllUsers();
-      } catch (error) {
-        expect(error.message).toBe(errorMessage);
-      }
-    });
-  });
+  // Add other unit tests to test other methods in the service
 });

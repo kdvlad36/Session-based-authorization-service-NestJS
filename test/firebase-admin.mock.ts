@@ -1,3 +1,4 @@
+// Моки Firestore
 const mockFirestore = {
   collection: jest.fn().mockImplementation(() => ({
     doc: jest.fn().mockImplementation(() => ({
@@ -21,24 +22,40 @@ const timestamp = {
   fromDate: jest.fn(createTimestampMock),
 };
 
-// Полный мок для firebase-admin, включая Timestamp
+// dbMock
+const userRefMock = {
+  get: jest.fn().mockResolvedValueOnce({
+    exists: true,
+    data: jest.fn().mockReturnValueOnce({
+      sessions: [],
+    }),
+  }),
+  update: jest.fn().mockResolvedValueOnce({}),
+};
+
+const dbMock = {
+  collection: jest.fn(() => {
+    return {
+      doc: jest.fn(() => userRefMock),
+    };
+  }),
+};
+
+// Полный мок для firebase-admin
 const mockFirebaseAdmin = {
   initializeApp: jest.fn(),
   credential: {
     cert: jest.fn(),
   },
   auth: jest.fn(() => ({
-    createUser: jest.fn().mockResolvedValue({
-      uid: 'some-uid',
-      email: 'test@example.com',
-    }),
-    verifyIdToken: jest.fn().mockResolvedValue({
-      uid: 'some-uid',
-      /* mock the response as needed */
-    }),
+    createUser: jest
+      .fn()
+      .mockResolvedValue({ uid: 'some-uid', email: 'test@example.com' }),
+    verifyIdToken: jest.fn().mockResolvedValue({ uid: 'some-uid' }),
   })),
   firestore: jest.fn(() => ({
     ...mockFirestore,
+    ...dbMock, // Добавляем dbMock здесь
     Timestamp: timestamp,
   })),
 };

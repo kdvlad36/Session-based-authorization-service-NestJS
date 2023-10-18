@@ -1,34 +1,27 @@
 import * as admin from 'firebase-admin';
 import { Request } from 'express';
 
-export class Session {
-  sessionId: string;
-  uid: string;
-  startedAt: admin.firestore.Timestamp;
-  endedAt?: admin.firestore.Timestamp;
-  sessionData?: any;
+export interface DeviceInfo {
   device: string;
-  createdAt: admin.firestore.Timestamp;
-  lastActive: admin.firestore.Timestamp;
+  browser: string;
+  platform: string;
+  source: string;
+  lastLoggedIn: admin.firestore.Timestamp;
+}
 
+export class Session {
   constructor(
-    sessionId: string,
-    uid: string,
-    startedAt: admin.firestore.Timestamp,
-    endedAt?: admin.firestore.Timestamp,
-    sessionData?: any,
-    device?: string,
-    createdAt?: admin.firestore.Timestamp,
-    lastActive?: admin.firestore.Timestamp,
+    public sessionId: string,
+    public uid: string,
+    public startedAt: admin.firestore.Timestamp,
+    public isActive: boolean,
+    public endedAt?: admin.firestore.Timestamp,
+    public sessionData?: any,
+    public deviceInfo?: DeviceInfo,
   ) {
-    this.sessionId = sessionId;
-    this.uid = uid;
-    this.startedAt = startedAt;
-    this.endedAt = endedAt;
-    this.sessionData = sessionData;
-    this.device = device || '';
-    this.createdAt = createdAt || admin.firestore.Timestamp.now();
-    this.lastActive = lastActive || admin.firestore.Timestamp.now();
+    if (!this.isActive) {
+      this.endedAt = admin.firestore.Timestamp.now();
+    }
   }
 }
 

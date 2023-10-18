@@ -1,49 +1,40 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserController } from '../src/users/controllers/user.controller';
-import { UserService } from '../src/users//services/user.service';
-import { db } from '../firebase';
-import { User } from '../src/users//models/user.model';
+import { INestApplication } from '@nestjs/common';
+import request from 'supertest';
+import { UsersModule } from '../src/users/modules/user.module';
 
-import mockFirebaseAdmin from './firebase-admin.mock';
-
-jest.mock('firebase-admin', () => mockFirebaseAdmin);
-
-describe('UserController', () => {
-  let userController: UserController;
+describe('UserController (e2e)', () => {
+  let app: INestApplication;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [UserController],
-      providers: [UserService],
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [UsersModule],
     }).compile();
 
-    userController = module.get<UserController>(UserController);
+    app = moduleFixture.createNestApplication();
+    await app.init();
   });
 
-  describe('getAllUsers', () => {
-    it('should return an array of users', async () => {
-      const result = [
-        new User('1', 'test1@example.com', [], new Date(), new Date()),
-        new User('2', 'test2@example.com', [], new Date(), new Date()),
-      ];
+  it('/users (GET)', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/users')
+      .expect(200);
 
-      jest.spyOn(db.collection('users'), 'get').mockResolvedValueOnce({
-        forEach(callback) {
-          result.forEach((user) =>
-            callback({
-              data: () => ({
-                uid: user.uid,
-                email: user.email,
-                sessions: user.sessions,
-                createdAt: { toDate: () => user.createdAt },
-                updatedAt: { toDate: () => user.updatedAt },
-              }),
-            }),
-          );
-        },
-      } as any);
+    expect(response.body).toBeInstanceOf(Array);
+    // Add additional assertions
+  });
 
-      expect(await userController.getAllUsers()).toBe(result);
-    });
+  it('/users/search (GET)', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/users/search')
+      .query({ email: 'test@example.com' })
+      .expect(200);
+
+    expect(response.body).toHaveProperty('email', 'test@example.com');
+    // Add additional assertions
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 });

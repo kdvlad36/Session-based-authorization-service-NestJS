@@ -4,12 +4,15 @@ import * as admin from 'firebase-admin';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { User } from '../../users/models/user.model';
 import { Session } from '../../sessions/models/session.model';
-import * as useragent from 'express-useragent';
+import { SessionService } from '../../sessions/services/session.service';
 import { Request } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { LoginDto } from '../dto/login.dto';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
+  constructor(private readonly sessionService: SessionService) {}
+
   async register(registerDto: RegisterDto): Promise<User> {
     try {
       const { email, password } = registerDto;
@@ -47,6 +50,24 @@ export class AuthService {
       throw Error('Error creating new user: ' + error);
     }
   }
+  async login(loginDto: LoginDto, req: Request): Promise<Session> {
+    try {
+      const { email, password } = loginDto;
+
+      const idToken = await this.getIdToken(email, password);
+
+      const decodedIdToken = await this.verifyIdToken(idToken);
+      const uid = decodedIdToken.uid;
+
+      // create session
+      const session = await this.sessionService.createSession(uid, req);
+      console.log(uid);
+
+      return session;
+    } catch (error) {
+      throw new HttpException('Login failed', HttpStatus.UNAUTHORIZED);
+    }
+  }
 
   async verifyIdToken(idToken: string): Promise<admin.auth.DecodedIdToken> {
     try {
@@ -58,59 +79,28 @@ export class AuthService {
     }
   }
 
-  public getDeviceInfo(req: Request): any {
-    const source = req.headers['user-agent'] as string;
-    const agent = useragent.parse(source);
+  async getIdToken(email: string, password: string): Promise<string> {
+    const url =
+      'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBn79LhMMUzm6jo0eotmB8If-scRxbOsKQ';
 
-    return {
-      device: agent.isDesktop ? 'Desktop' : agent.isMobile ? 'Mobile' : 'Other',
-      browser: agent.browser,
-      platform: agent.platform,
-      source: agent.source,
-      lastLoggedIn: new Date(),
-    };
-  }
-  private async saveSessionToDB(session: Session): Promise<void> {
     try {
-      const userRef = db.collection('users').doc(session.uid);
-      const userSnapshot = await userRef.get();
-      if (!userSnapshot.exists) {
-        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      const response = await axios.post(url, {
+        email,
+        password,
+        returnSecureToken: true,
+      });
+
+      if (response.data && response.data.idToken) {
+        return response.data.idToken;
+      } else {
+        throw new Error('ID token is missing in the response');
       }
-
-      const userData = userSnapshot.data();
-      if (!userData) {
-        throw Error('User data is undefined');
-      }
-
-      const plainSessionObject = JSON.parse(JSON.stringify(session));
-
-      userData.sessions.push(plainSessionObject);
-      await userRef.update({ sessions: userData.sessions }); // Update only the sessions property
     } catch (error) {
-      throw new Error('Error saving session to DB: ' + error);
-    }
-  }
-
-  async createSession(uid: string, req: Request): Promise<Session> {
-    try {
-      const sessionId = uuidv4();
-      const deviceInfo = this.getDeviceInfo(req);
-
-      const startedAt = admin.firestore.Timestamp.fromDate(new Date()); // This line is fixed
-
-      const session = new Session(
-        sessionId,
-        uid,
-        startedAt, // This should be a Firestore Timestamp
-        deviceInfo,
+      console.error('Error getting ID token:', error);
+      throw new HttpException(
+        'Failed to get ID token',
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
-
-      await this.saveSessionToDB(session);
-
-      return session;
-    } catch (error) {
-      throw Error('Error creating session: ' + error);
     }
   }
 }
