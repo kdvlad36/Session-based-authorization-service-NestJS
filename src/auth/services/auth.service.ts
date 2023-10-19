@@ -7,6 +7,7 @@ import { Session } from '../../sessions/models/session.model';
 import { SessionService } from '../../sessions/services/session.service';
 import { Request } from 'express';
 import { LoginDto } from '../dto/login.dto';
+import { url } from 'token/url';
 import axios from 'axios';
 
 @Injectable()
@@ -80,9 +81,6 @@ export class AuthService {
   }
 
   async getIdToken(email: string, password: string): Promise<string> {
-    const url =
-      'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBn79LhMMUzm6jo0eotmB8If-scRxbOsKQ';
-
     try {
       const response = await axios.post(url, {
         email,
